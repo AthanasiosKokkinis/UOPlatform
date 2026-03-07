@@ -12,14 +12,28 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
+import { HomeScreen } from './screens/HomeScreen';
+import { LoginScreen } from './screens/LoginScreen';
+import { MainScreen} from './screens/MainScreen';
+
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
+  const Stack = createNativeStackNavigator();
+
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName='Login' screenOptions={{headerShown: false}}>
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Main" component={MainScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+      </Stack.Navigator>
+      {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <AppContent /> */}
+    </NavigationContainer>
   );
 }
 
