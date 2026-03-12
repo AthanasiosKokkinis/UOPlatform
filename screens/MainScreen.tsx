@@ -3,6 +3,8 @@ import React from "react";
 import {View, Text, StyleSheet,TouchableOpacity} from "react-native";
 import {Card} from "../components/Card";
 import { useNavigation } from "@react-navigation/native";
+import {Post,PostProps} from "../components/Post";
+
 interface CardProps {
     title: string;
     content?: string;
@@ -22,6 +24,15 @@ export const MainScreen=()=>{
             navigation.navigate("Home");
         
     }
+    //I use the interface
+    const ExamplePost:PostProps={
+        poster:'Name',
+        title:'Title',
+        tag:'subject',
+        time:'30min',
+        text:'Bla bla  bla bla bla bla bla bla\nbla bla bla bla bla bla bla bla',
+        }
+
     return(
         <View>
             { testCards.map((card: CardProps, index: number) => {
@@ -30,6 +41,7 @@ export const MainScreen=()=>{
             <TouchableOpacity onPress={MoveLogin}>
                 <Text>{"Go to home"}</Text>
             </TouchableOpacity>
+                        <Post {...ExamplePost}/>
         </View>
     );
 }
