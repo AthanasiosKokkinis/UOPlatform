@@ -1,52 +1,50 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-
-import { HomeScreen } from './screens/HomeScreen';
-import { LoginScreen } from './screens/LoginScreen';
-import { MainScreen} from './screens/MainScreen';
-
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+import { LoginScreen } from './screens/LoginScreen';
+import { MainScreen } from './screens/MainScreen';
+import { HomeScreen } from './screens/HomeScreen';
+import { PostScreen } from './screens/PostScreen';
+import { Navbar } from './components/navigation/Navbar';
 
-  const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
+const NAVBAR_HEIGHT = 56;
+
+function AppContent() {
+  const insets = useSafeAreaInsets();
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName='Login' screenOptions={{headerShown: false}}>
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Main" component={MainScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
-      {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent /> */}
+      <View style={styles.container}>
+        <Navbar />
+
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{
+            headerShown: false,
+            contentStyle: {
+              paddingTop: NAVBAR_HEIGHT + insets.top,
+            },
+          }}
+        >
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Main" component={MainScreen} />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Post" component={PostScreen} />
+        </Stack.Navigator>
+      </View>
     </NavigationContainer>
   );
 }
 
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
+export default function App() {
   return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <SafeAreaProvider>
+      <AppContent />
+    </SafeAreaProvider>
   );
 }
 
@@ -55,5 +53,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-export default App;
