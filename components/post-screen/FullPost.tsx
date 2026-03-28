@@ -1,9 +1,10 @@
-import { View, ScrollView, Text, StyleSheet } from "react-native";
+import { View, ScrollView, Text, StyleSheet ,TouchableOpacity} from "react-native";
 import {useState} from "react";
 
 import {Upvote} from "../../assets/svgs/ctas/Upvote";
 import {Downvote} from "../../assets/svgs/ctas/Downvote";
-
+import {Comment} from "../../assets/svgs/ctas/Comment";
+import {Share} from "../../assets/svgs/ctas/Share";
 interface FullPostProps {
     username: string;
     datePosted: string;
@@ -33,14 +34,14 @@ export const FullPost = ({username, datePosted, title, content, metas}:FullPostP
 
     return(
     <View style={fullPostStyles.container}>
-        <View style={fullPostStyles.userMetaContainer}>
-            <View style={fullPostStyles.userMetaPostLexicalsContainer}>
-                <Text>{username}</Text>
-                <Text>{datePosted}</Text>
-            </View>
-        </View>
-        <View>
+        <View style={{display: "flex",flexDirection: "row",alignItems:"center",justifyContent: "center",gap:5}}>
             <Text style={fullPostStyles.title}>{title}</Text>
+            <View style={fullPostStyles.userMetaContainer}>
+                <View style={fullPostStyles.userMetaPostLexicalsContainer}>
+                    <Text>{username}</Text>
+                    <Text>{datePosted}</Text>
+                </View>
+        </View>
         </View>
         <View>
             <Text style={fullPostStyles.content}>{content.text}</Text>
@@ -49,7 +50,23 @@ export const FullPost = ({username, datePosted, title, content, metas}:FullPostP
             <Text style={fullPostStyles.tags}>{content?.tags?.join(" ")}</Text>
         </View>
         <View style={fullPostStyles.userCTAsContainer}>
-            
+            <View style={fullPostStyles.postLikesContainer}>
+                <TouchableOpacity  hitSlop={8} onPress={()=>changeLikesCount(1)}>
+                    <Upvote color="black" size={24} />      
+                </TouchableOpacity>
+                <Text>{likesCount}</Text>
+                <TouchableOpacity  hitSlop={8} onPress={()=>changeLikesCount(-1)}>
+                    <Downvote color="black" size={24} />      
+                </TouchableOpacity>
+
+            </View>
+
+             <TouchableOpacity  hitSlop={8} onPress={()=>changeLikesCount(-1)}>
+                <Comment color="black" size={24} />      
+            </TouchableOpacity>
+            <TouchableOpacity  hitSlop={8} onPress={()=>changeLikesCount(-1)}>
+                <Share color="black" size={24} />      
+            </TouchableOpacity>
             
         </View>
     </View>);
@@ -60,8 +77,10 @@ const fullPostStyles = StyleSheet.create({
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        alignItems: "flex-start",
+        alignItems: "center",
         rowGap: 5,
+        backgroundColor:"#331f04ff",
+        borderRadius:20
     },
     userMetaContainer: {
         display: "flex",
@@ -71,8 +90,9 @@ const fullPostStyles = StyleSheet.create({
     userMetaProfileIconContainer: {},
     userMetaPostLexicalsContainer: {
         display: "flex",
-        flexDirection: "column",
-        justifyContent: "center"
+        flexDirection: "row",
+        justifyContent: "center",
+        gap:10
     },
     title: {
         color: "white",
@@ -89,6 +109,7 @@ const fullPostStyles = StyleSheet.create({
     userCTAsContainer: {
         display: "flex",
         flexDirection: "row",
+        gap:20
     },
     postLikesContainer: {
         display: "flex",
@@ -96,7 +117,8 @@ const fullPostStyles = StyleSheet.create({
         alignItems: "center",
         justifyContent:"center",
         borderRadius: 20,
-        color: "white"
+        color: "white",
+        gap:5
     },
 
     
