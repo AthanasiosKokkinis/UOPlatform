@@ -28,9 +28,9 @@ export const LoginForm = () => {
     return(
         <View style={loginFormStyles.loginFormContainer}>
             <View style={loginFormStyles.loginFormTextInputContainer}>
-                <View style={{backgroundColor:  "#474242", height: "100%", display: "flex", flexDirection: "column"}}>
+                <View style={{backgroundColor:  "#474242", height: "80%", display: "flex", flexDirection: "column",marginLeft:'7%',marginRight:"5%"}}>
                     {/* <User color="rgb(0, 0, 0)" size={24}/> */}
-                    <User color="red" size={24} />
+                    <User color="black" />
 
                 </View>
                 {/* <Text style={{textAlign:"left", width: "10%",backgroundColor: "#474242", color: "white"}}>
@@ -49,20 +49,20 @@ export const LoginForm = () => {
                 <TouchableOpacity  hitSlop={8} onPress={()=>handleHidden()}>
                     {
                         hidden && (
-                             <EyeClosed color="rgb(0, 0, 0)" size={24} />
+                             <EyeClosed color="black" size={24} />
                         )
                     }
                     {
                         !hidden && (
-                            <Eye color="rgb(0, 0, 0)" size={24} />
+                            <Eye color="black" size={24} />
                         )
                     }
                 </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={{backgroundColor: "green", paddingHorizontal: 10, paddingVertical: 5, borderColor: "black", borderWidth: 1}} onPress={()=>handleLogin()}>
-                <Text style={{color: "white"}}>
-                    {"PRESS ME"}
+            <TouchableOpacity style={loginFormStyles.ButtonForm} onPress={()=>handleLogin()}>
+                <Text>
+                    {"Enter"}
                 </Text>
             </TouchableOpacity>
         </View>
@@ -73,39 +73,50 @@ const loginFormStyles = StyleSheet.create({
     loginFormContainer: {
         display: "flex",
         flexDirection: "column",
-        alignItems:"flex-start",
+        alignItems:"center",
         justifyContent: "center",
         width: "100%",
         height: "100%",
-        paddingHorizontal: 16,
-        backgroundColor: "grey",
-        rowGap: 30,
-        paddingVertical: 5,
-        borderRadius:20
+        paddingHorizontal: '2%',
+        backgroundColor:"#331f04ff",
+        rowGap:'5%',
+        paddingVertical:'10%',
+        borderRadius:10
     },
     loginFormTextInputContainer: {
-        display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        width: "80%",
         justifyContent: "center",
+        width: "90%",
+        height: "20%",
         backgroundColor: "#474242",
-        borderRadius:10
-
-
+        borderRadius: 10,
+        paddingHorizontal:'5%', 
+        marginVertical: '1%',
+        
     },
     passwordField: {
         display: "flex",
         flexDirection: "row",
         backgroundColor: "#474242",
-        borderColor: '#474242',
         width: "80%",
         borderStyle: 'solid',
         
     },
     userNameForm:{
         backgroundColor:"#474242",
-        width: "100%",
+        width: "90%",
+        borderStyle: 'solid',
+        borderColor: '#474242',
+        borderRadius:10
+        
+    },
+    ButtonForm:{
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor:"#2b1d1dff",
+        width: "30%",
+        height:"30%",
         borderStyle: 'solid',
         borderColor: '#474242',
         borderRadius:10

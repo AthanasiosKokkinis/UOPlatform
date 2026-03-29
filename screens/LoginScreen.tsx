@@ -11,14 +11,14 @@ export const LoginScreen = () =>
     
         <View  style={loginFormStyles.container}>
             <View style={loginFormStyles.Over}>
-                <Hat color="yellow" size={30}/>
+                <Hat />
                 <Text>{"Community"}</Text>
             </View>
             <View style={loginFormStyles.Middle}>
                 <LoginForm />
             </View>
             <View style={loginFormStyles.Under}>
-                <Text>{"Make acount"}</Text>
+                <Text>{"Make an account"}</Text>
             </View>
        
         </View>
@@ -35,7 +35,7 @@ const loginFormStyles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor:'red',
+        backgroundColor:'#533817',
         rowGap:10
     },
     Over:{
@@ -47,7 +47,7 @@ const loginFormStyles = StyleSheet.create({
         width: "50%",
         height: "20%",
         paddingHorizontal: 16,
-        backgroundColor: "grey",
+        backgroundColor:'#2b1a05ff',
         rowGap: 30,
         paddingVertical: 5,
         borderRadius:20
@@ -60,7 +60,7 @@ const loginFormStyles = StyleSheet.create({
         width: "80%",
         height: "30%",
         paddingHorizontal: 16,
-        backgroundColor: "grey",
+        backgroundColor: "",
         rowGap: 30,
         paddingVertical: 5,
         borderRadius:20
@@ -69,12 +69,12 @@ const loginFormStyles = StyleSheet.create({
     Under:{
         display: "flex",
         flexDirection: "column",
-        alignItems:"flex-start",
+        alignItems:"center",
         justifyContent: "center",
-        width: "50%",
-        height: "10%",
+        width: "40%",
+        height: "7%",
         paddingHorizontal: 16,
-        backgroundColor: "grey",
+        backgroundColor:'#2b1a05ff',
         rowGap: 30,
         paddingVertical: 20,
         borderRadius:20
