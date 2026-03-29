@@ -22,7 +22,7 @@ function AppContent() {
         <Navbar />
 
         <Stack.Navigator
-          initialRouteName="Login"
+          initialRouteName="Main"
           screenOptions={{
             headerShown: false,
             contentStyle: {

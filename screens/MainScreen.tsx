@@ -1,47 +1,84 @@
-import React from "react";
-
-import {View, Text, StyleSheet,TouchableOpacity} from "react-native";
-import {Card} from "../components/Card";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import {Post,PostProps} from "../components/Post";
+import { Post, PostProps } from "../components/Post";
 
-interface CardProps {
-    title: string;
-    content?: string;
-}
+export const MainScreen = () => {
+  const navigation = useNavigation();
 
-export const MainScreen=()=>{
-    const navigation = useNavigation();
-    const testCards: CardProps[] = [
-        {title: "Title1", content: "Content1"},
-        {title: "Title2"},
-        {title: "Title3", content: "Content1"},
-        {title: "Title4", content: "Content1"},
-    ];
-    const  MoveLogin= () =>
-    {
-      
-            navigation.navigate("Home");
-        
-    }
-    //I use the interface
-    const ExamplePost:PostProps={
-        poster:'Name',
-        title:'Title',
-        tag:'subject',
-        time:'30min',
-        text:'Bla bla  bla bla bla bla bla bla\nbla bla bla bla bla bla bla bla',
-        }
+  const MoveLogin = () => {
+    (navigation as any).navigate("Home");
+  };
 
-    return(
-        <View>
-            { testCards.map((card: CardProps, index: number) => {
-                return(<Card key={index} title={card.title} content={card.content}/>);
-            }) }
-            <TouchableOpacity onPress={MoveLogin}>
-                <Text>{"Go to home"}</Text>
-            </TouchableOpacity>
-                        <Post {...ExamplePost}/>
-        </View>
+  const createPost = (id: number): PostProps => ({
+    poster: `User ${id}`,
+    title: `Post Title ${id}`,
+    tag: "subject",
+    time: `${id} min`,
+    text:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque id massa sed est ultricies efficitur. Sed in dui vehicula, tristique ante vel, rutrum est.",
+  });
+
+  const [posts, setPosts] = useState<PostProps[]>(
+    Array.from({ length: 10 }, (_, i) => createPost(i + 1))
+  );
+
+  const loadMore = () => {
+    const currentLength = posts.length;
+
+    const newPosts = Array.from({ length: 10 }, (_, i) =>
+      createPost(currentLength + i + 1)
     );
-}
+
+    setPosts((prev) => [...prev, ...newPosts]);
+  };
+
+  const getExcerpt = (text: string, maxLength = 100) => {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + "...";
+  };
+
+  return (
+    <FlatList
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      data={posts}
+      keyExtractor={(_, index) => index.toString()}
+      
+      renderItem={({ item }) => (
+        <Post
+          {...item}
+          text={getExcerpt(item.text)}
+        />
+      )}
+
+      ListHeaderComponent={
+        <TouchableOpacity onPress={MoveLogin} style={styles.headerBtn}>
+          <Text style={styles.headerText}>Go to home</Text>
+        </TouchableOpacity>
+      }
+
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.5}
+
+      showsVerticalScrollIndicator={false}
+    />
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#1c1c1c",
+  },
+  contentContainer: {
+    padding: 16,
+    gap: 12,
+  },
+  headerBtn: {
+    marginBottom: 10,
+  },
+  headerText: {
+    color: "white",
+  },
+});
