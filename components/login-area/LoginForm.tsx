@@ -3,6 +3,7 @@ import {View, TextInput, Text, StyleSheet, TouchableOpacity} from "react-native"
 import { useNavigation } from "@react-navigation/native";
 import {Eye} from '../../assets/svgs/login/Eye';
 import {EyeClosed} from '../../assets/svgs/login/EyeClosed';
+import{Lock} from '../../assets/svgs/login/Lock';
 import {User} from '../../assets/svgs/login/User';
 export const LoginForm = () => {
     const [username, setUsername] = React.useState<string>("");
@@ -27,42 +28,40 @@ export const LoginForm = () => {
  
     return(
         <View style={loginFormStyles.loginFormContainer}>
-            <View style={loginFormStyles.loginFormTextInputContainer}>
-                <View style={{backgroundColor:  "#474242", height: "80%", display: "flex", flexDirection: "column",marginLeft:'7%',marginRight:"5%"}}>
-                    {/* <User color="rgb(0, 0, 0)" size={24}/> */}
-                    <User color="black" />
-
-                </View>
+            <Text style={{color:"white",fontSize:18, alignSelf:'flex-start',marginLeft:"6%"}}>Καλώς ήρθες!</Text>
+            <Text style={{color:"#474242", alignSelf:'flex-start',paddingVertical:'1%',marginLeft:"6%"}}>Συνδέσου με τον λογαριασμό σου</Text>
+            <View style={loginFormStyles.loginFormTextInputContainer}>              
+                    <User color="white" size={18} />
                 {/* <Text style={{textAlign:"left", width: "10%",backgroundColor: "#474242", color: "white"}}>
                     {"Username"}
                 </Text>  */}
-                <TextInput style={loginFormStyles.userNameForm} placeholder="UserName" value={username} onChangeText={(value)=>setUsername(value)}/>
+                <TextInput style={loginFormStyles.userNameForm} placeholderTextColor="white" placeholder="UserName" value={username} onChangeText={(value)=>setUsername(value)}/>
             </View>
 
             <View style={loginFormStyles.loginFormTextInputContainer}>
                 {/* <Text style={{textAlign:"left", width: "100%",backgroundColor: "#474242",}}>
                     {"Password"}
                 </Text> */}
-                
-                <TextInput placeholder="Your Password" value={password} onChangeText={(v) => setPassword(v)} style={loginFormStyles.passwordField} autoCapitalize="none" spellCheck={false} secureTextEntry={hidden} />
+                <Lock color="white" size={20} />
+                <TextInput placeholderTextColor="white" placeholder="Your Password" value={password} onChangeText={(v) => setPassword(v)} style={loginFormStyles.passwordField} autoCapitalize="none" spellCheck={false} secureTextEntry={hidden} />
                 
                 <TouchableOpacity  hitSlop={8} onPress={()=>handleHidden()}>
                     {
                         hidden && (
-                             <EyeClosed color="black" size={24} />
+                             <EyeClosed color="white" size={18}  />
                         )
                     }
                     {
                         !hidden && (
-                            <Eye color="black" size={24} />
+                            <Eye color="white" size={18}  />
                         )
                     }
                 </TouchableOpacity>
             </View>
 
             <TouchableOpacity style={loginFormStyles.ButtonForm} onPress={()=>handleLogin()}>
-                <Text>
-                    {"Enter"}
+                <Text style={{color:'white'}}>
+                    {"Σύνδεση"}
                 </Text>
             </TouchableOpacity>
         </View>
@@ -78,9 +77,8 @@ const loginFormStyles = StyleSheet.create({
         width: "100%",
         height: "100%",
         paddingHorizontal: '2%',
-        backgroundColor:"#331f04ff",
-        rowGap:'5%',
-        paddingVertical:'10%',
+        backgroundColor:"#1a1818ff",
+        rowGap:'2%',
         borderRadius:10
     },
     loginFormTextInputContainer: {
@@ -88,8 +86,8 @@ const loginFormStyles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         width: "90%",
-        height: "20%",
-        backgroundColor: "#474242",
+        height: "15%",
+        backgroundColor: "rgb(68, 61, 61)",
         borderRadius: 10,
         paddingHorizontal:'5%', 
         marginVertical: '1%',
@@ -98,27 +96,30 @@ const loginFormStyles = StyleSheet.create({
     passwordField: {
         display: "flex",
         flexDirection: "row",
-        backgroundColor: "#474242",
+        backgroundColor:"rgb(68, 61, 61)",
         width: "80%",
         borderStyle: 'solid',
+        color:"white",
+        
         
     },
     userNameForm:{
-        backgroundColor:"#474242",
+        backgroundColor:"rgb(68, 61, 61)",
         width: "90%",
         borderStyle: 'solid',
         borderColor: '#474242',
-        borderRadius:10
+        borderRadius:10,
+        color:"white"
         
     },
     ButtonForm:{
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor:"#2b1d1dff",
-        width: "30%",
-        height:"30%",
+        backgroundColor:'#8e2436ff',
+        width: "90%",
+        height:"15%",
         borderStyle: 'solid',
-        borderColor: '#474242',
+        borderColor:'#8e2436ff',
         borderRadius:10
         
     }

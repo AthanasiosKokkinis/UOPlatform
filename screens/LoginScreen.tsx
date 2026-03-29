@@ -11,14 +11,14 @@ export const LoginScreen = () =>
     
         <View  style={loginFormStyles.container}>
             <View style={loginFormStyles.Over}>
-                <Hat />
-                <Text>{"Community"}</Text>
+              <View style={{backgroundColor:'#ce951aff',borderRadius:10,width:"60%",height:"60%",justifyContent: 'center',alignItems:"center"}}><Hat /></View>
+                <Text style={{color:'white',fontSize:25}}>{"Uoplatform"}</Text>
             </View>
             <View style={loginFormStyles.Middle}>
                 <LoginForm />
             </View>
             <View style={loginFormStyles.Under}>
-                <Text>{"Make an account"}</Text>
+                <Text style={{color:'white'}}>{"Make an account"}</Text>
             </View>
        
         </View>
@@ -35,8 +35,8 @@ const loginFormStyles = StyleSheet.create({
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor:'#533817',
-        rowGap:10
+        backgroundColor:'#8e2436ff',
+        rowGap:20
     },
     Over:{
 
@@ -47,21 +47,20 @@ const loginFormStyles = StyleSheet.create({
         width: "50%",
         height: "20%",
         paddingHorizontal: 16,
-        backgroundColor:'#2b1a05ff',
+        backgroundColor:'',
         rowGap: 30,
         paddingVertical: 5,
         borderRadius:20
+
     },
     Middle:{
         display: "flex",
         flexDirection: "column",
         alignItems:"center",
         justifyContent: "center",
-        width: "80%",
-        height: "30%",
-        paddingHorizontal: 16,
-        backgroundColor: "",
-        rowGap: 30,
+        width: "90%",
+        height: "40%",
+        backgroundColor:'',
         paddingVertical: 5,
         borderRadius:20
     }
@@ -74,10 +73,11 @@ const loginFormStyles = StyleSheet.create({
         width: "40%",
         height: "7%",
         paddingHorizontal: 16,
-        backgroundColor:'#2b1a05ff',
+        backgroundColor:'',
         rowGap: 30,
         paddingVertical: 20,
-        borderRadius:20
+        borderRadius:20,
+        
     }
  
 })

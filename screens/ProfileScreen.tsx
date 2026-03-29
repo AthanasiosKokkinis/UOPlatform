@@ -4,7 +4,7 @@ import { ProfileHeader } from '../components/profile-screen/ProfileHeader';
 import { ProfileBadges } from '../components/profile-screen/ProfileBadges';
 import { ProfileStats } from '../components/profile-screen/ProfileStats';
 import { ProfilePosts } from '../components/profile-screen/ProfilePosts';
-import { COLORS } from '../components/profile-screen/colors';
+import { COLORS } from '../components/colors';
 
 const userPosts = [
   {

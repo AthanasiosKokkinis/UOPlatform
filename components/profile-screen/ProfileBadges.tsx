@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS } from './colors';
+import { COLORS } from '../colors.ts';
 
 interface Badge {
   label: string;
