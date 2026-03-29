@@ -9,6 +9,7 @@ import { MainScreen } from './screens/MainScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { PostScreen } from './screens/PostScreen';
 import { Navbar } from './components/navigation/Navbar';
+import { ProfileScreen } from './screens/ProfileScreen.tsx';
 
 const Stack = createNativeStackNavigator();
 const NAVBAR_HEIGHT = 56;
@@ -34,6 +35,7 @@ function AppContent() {
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Post" component={PostScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
         </Stack.Navigator>
       </View>
     </NavigationContainer>
