@@ -4,9 +4,10 @@ export function Hat(props: any) {
   return (
   <Svg
     viewBox="0 0 24 24"
-    width={24}
-    height={24}
-    fill="none"
+    width={45}
+    height={45}
+    color='black'
+    fill='none'
     {...props}
   >
     <Path
