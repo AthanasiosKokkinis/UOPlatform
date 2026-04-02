@@ -7,7 +7,7 @@ export const MainScreen = () => {
   const navigation = useNavigation();
 
   const MoveLogin = () => {
-    (navigation as any).navigate("Home");
+    (navigation as any).navigate("About");
   };
 
   const createPost = (id: number): PostProps => ({
