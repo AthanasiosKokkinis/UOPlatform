@@ -1,9 +1,8 @@
 import React from "react";
 
-import {View, Text, StyleSheet} from "react-native";
+import {View, Text, StyleSheet, Touchable, TouchableOpacity} from "react-native";
 import {LoginForm} from "../components/login-area/LoginForm";
 import {Hat} from '../assets/svgs/login/Hat';
-
 
 export const LoginScreen = () =>
 {

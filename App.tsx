@@ -1,4 +1,5 @@
 import React from 'react';
+import 'react-native-url-polyfill';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
@@ -23,7 +24,7 @@ function AppContent() {
         <Navbar />
 
         <Stack.Navigator
-          initialRouteName="Post"
+          initialRouteName="Login"
           screenOptions={{
             headerShown: false,
             contentStyle: {

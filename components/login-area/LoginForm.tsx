@@ -5,21 +5,30 @@ import {Eye} from '../../assets/svgs/login/Eye';
 import {EyeClosed} from '../../assets/svgs/login/EyeClosed';
 import{Lock} from '../../assets/svgs/login/Lock';
 import {User} from '../../assets/svgs/login/User';
+
+import { useAuthStore } from "../../stores/authStore";
+
 export const LoginForm = () => {
+
     const [username, setUsername] = React.useState<string>("");
     const [password, setPassword] = React.useState<string>("");
     const [hidden,setHidden]=React.useState<boolean>(true);
     const navigation = useNavigation();
     
-    const CORRECT_USERNAME = "USERNAME";
+    const CORRECT_USERNAME = "USERNAME@gmail.com";
     const CORRECT_PASSWORD = "PASSWORD";
 
+
+    const {user, loading, signUp} = useAuthStore();
+
     
-    const handleLogin = () =>
+    const handleLogin = async () =>
     {
         if(username === CORRECT_USERNAME && password === CORRECT_PASSWORD)
         {
-            navigation.navigate('Post' as never);        
+            console.log("STARTED")
+            signUp(username, password);
+            // navigation.navigate('Post' as never);        
         }
     }
     const handleHidden=()=>{
