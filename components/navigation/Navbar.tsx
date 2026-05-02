@@ -13,12 +13,15 @@ import { COLORS } from '../colors';
 import { Search } from '../../assets/svgs/general/Search';
 import { Gear } from '../../assets/svgs/general/Gear';
 import { useNavigation } from '@react-navigation/native';
+import { useAuthStore } from '../../stores/authStore';
 
 const NAVBAR_HEIGHT = 56;
 
 export const Navbar = ({ color }: { color?: string }) => {
   const insets = useSafeAreaInsets();
   const navigation: any = useNavigation();
+  const me = useAuthStore((s) => s.user);
+  const myProfile = useAuthStore((s) => s.profile);
   const [isSearching, setIsSearching] = useState(false);
   const [searchString, setSearchString] = useState('');
   const inputRef = useRef<TextInput>(null);
@@ -72,20 +75,24 @@ export const Navbar = ({ color }: { color?: string }) => {
           <TouchableOpacity
             hitSlop={8}
             onPress={() => {
-              navigation.navigate('Profile');
+              navigation.navigate('Profile', me ? { userId: me.id } : undefined);
             }}
           >
             <View style={navbarStyles.userRow}>
               <View style={navbarStyles.imageContainer}>
                 <Image
                   source={{
-                    uri: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131',
+                    uri:
+                      myProfile?.avatar_url ??
+                      'https://images.unsplash.com/photo-1518791841217-8f162f1e1131',
                   }}
                   style={navbarStyles.image}
                   resizeMode="cover"
                 />
               </View>
-              <Text style={navbarStyles.username}>Thanos Kokkinis</Text>
+              <Text style={navbarStyles.username}>
+                {myProfile?.display_name ?? myProfile?.username ?? me?.email ?? ''}
+              </Text>
             </View>
           </TouchableOpacity>
 

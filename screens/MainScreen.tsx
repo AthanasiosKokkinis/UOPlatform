@@ -1,164 +1,140 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { Post, PostProps } from "../components/Post";
-import SortBar from "../components/main-screen/SortBar"
-import PostCard from "../components/PostCard"
-import {COLORS} from "../components/colors";
-import {Footer} from "../components/footer/Footer"
-export const MainScreen = () => {
-  const navigation = useNavigation();
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+} from "react-native";
+import SortBar from "../components/main-screen/SortBar";
+import PostCard from "../components/PostCard";
+import { COLORS } from "../components/colors";
+import { Footer } from "../components/footer/Footer";
+import { fetchPosts, Post } from "../lib/supabase";
+import { NewPostModal } from "../components/modals/NewPostModal";
 
-  const MoveLogin = () => {
-    (navigation as any).navigate("About");
+const formatTimeAgo = (iso: string) => {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "now";
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  return `${d}d`;
+};
+
+export const MainScreen = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [newPostOpen, setNewPostOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await fetchPosts();
+      setPosts(data);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to load posts");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    load();
   };
 
-  const posts = [
-      {
-        channel: 'εξεταστική',
-        author: 'Μαρία Κ.',
-        authorYear: '22',
-        timeAgo: '2ω',
-        title: 'Ξέρει κανείς πότε βγαίνουν τα αποτελέσματα Σήματα & Συστήματα;',
-        body: 'Γράψαμε πριν 10 μέρες και ακόμα τίποτα στο eclass. Κάποιος που πέρασε πέρυσι θυμάται πόσο καιρό πήρε;',
-        votes: 42,
-        comments: 18,
-        tags: ['ΗΜΤΥ', 'Εξεταστική'],
-      },
-      {
-        channel: 'campus-life',
-        author: 'Δημήτρης Π.',
-        authorYear: '21',
-        timeAgo: '4ω',
-        title:
-          'Η καφετέρια στο κτίριο Β κάνει τον καλύτερο freddo στην Πάτρα, change my mind',
-        imageUrl:
-          'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&h=300&fit=crop',
-        votes: 156,
-        comments: 67,
-        tags: ['Φαγητό', 'Campus'],
-      },
-      {
-        channel: 'σημειώσεις',
-        author: 'Ελένη Σ.',
-        authorYear: '23',
-        timeAgo: '6ω',
-        title:
-          'Σημειώσεις Αλγόριθμοι & Πολυπλοκότητα — ολόκληρη η ύλη σε 40 σελίδες',
-        body: 'Τις ετοίμασα για την εξεταστική. Αν θέλει κάποιος ας στείλει DM. Καλύπτουν Dijkstra, dynamic programming, NP-completeness κτλ.',
-        votes: 312,
-        comments: 89,
-        tags: ['CEID', 'Σημειώσεις', 'Sharing'],
-      },
-      {
-        channel: 'events',
-        author: 'ESN Patras',
-        timeAgo: '1μ',
-        title: '🎉 Erasmus Welcome Party — Παρασκευή 8/3 στο Beau Rivage',
-        imageUrl:
-          'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=300&fit=crop',
-        votes: 89,
-        comments: 34,
-        tags: ['Event', 'Erasmus', 'Party'],
-      },
-      {
-        channel: 'στέγαση',
-        author: 'Κώστας Μ.',
-        authorYear: '24',
-        timeAgo: '3ω',
-        title: 'Ψάχνω συγκάτοικο κοντά στο Πανεπιστήμιο — 180€/μήνα με έξοδα',
-        body: 'Διαμέρισμα στο Ρίο, 2 δωμάτια, 10 λεπτά με ποδήλατο από το campus. Διαθέσιμο από Μάρτιο.',
-        votes: 28,
-        comments: 15,
-        tags: ['Στέγαση', 'Ρίο'],
-      },
-      {
-        channel: 'memes',
-        author: 'MemeLordUP',
-        timeAgo: '5ω',
-        title:
-          "Όταν ο καθηγητής λέει 'η ύλη είναι εύκολη' και μετά βλέπεις το θέμα",
-        votes: 834,
-        comments: 203,
-        tags: ['Meme', 'Relatable'],
-      },
-    ];
-
-  // const [posts, setPosts] = useState<PostProps[]>(
-  //   Array.from({ length: 10 }, (_, i) => createPost(i + 1))
-  // );
-
-//   const loadMore = () => {
-//     const currentLength = posts.length;
-
-//     const newPosts = Array.from({ length: 10 }, (_, i) =>
-//       createPost(currentLength + i + 1)
-//     );
-
-//     setPosts((prev) => [...prev, ...newPosts]);
-//   };
-
-  // const getExcerpt = (text: string, maxLength = 100) => {
-  //   if (text.length <= maxLength) return text;
-  //   return text.slice(0, maxLength) + "...";
-  // };
+  const handleDeleted = (id: string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== id));
+  };
 
   return (
-    <View style={{ backgroundColor: COLORS.background, width: "100%", height:"100%" }}>
+    <View style={styles.screen}>
       <SortBar />
-      <ScrollView>
-{posts.map((post, i) => (
-          <PostCard key={i} {...post} />
-        ))}
-      </ScrollView>
-      
-      {/* <FlatList
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-        data={posts}
-        keyExtractor={(_, index) => index.toString()}
-        
-        renderItem={({ item, i }) => (
-          // <Post
-          //   {...item}
-          //   text={getExcerpt(item.text)}
-          // />
-          <PostCard key={i} {...item} />
-        )}
-
-        ListHeaderComponent={
-          <TouchableOpacity onPress={MoveLogin} style={styles.headerBtn}>
-            <Text style={styles.headerText}>Go to home</Text>
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color="#fff" />
+        </View>
+      ) : error ? (
+        <View style={styles.center}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={load} style={styles.retryBtn}>
+            <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
-        }
-        ListFooterComponent={
-          <View><Text>{"Footer"}</Text></View>
-          
-        }
-
-        // onEndReached={loadMore}
-        // onEndReachedThreshold={0.5}
-
-        showsVerticalScrollIndicator={false}
-      /> */}
-      <Footer/>
+        </View>
+      ) : (
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#fff"
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.center}>
+              <Text style={styles.emptyText}>No posts yet. Be the first!</Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <PostCard
+              id={item.id}
+              userId={item.user_id}
+              authorId={item.user_id}
+              channel={item.channel}
+              author={item.author?.display_name ?? item.author?.username ?? "user"}
+              timeAgo={formatTimeAgo(item.created_at)}
+              title={item.title}
+              body={item.body}
+              imageUrl={item.image_url}
+              tags={item.tags ?? []}
+              votes={0}
+              comments={0}
+              onDeleted={handleDeleted}
+            />
+          )}
+        />
+      )}
+      <Footer onNewPost={() => setNewPostOpen(true)} />
+      <NewPostModal
+        visible={newPostOpen}
+        onClose={() => setNewPostOpen(false)}
+        onCreated={load}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#1c1c1c",
+    backgroundColor: COLORS.background,
   },
-  contentContainer: {
-    padding: 16,
-    gap: 12,
+  center: {
+    padding: 32,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  headerBtn: {
-    marginBottom: 10,
+  errorText: { color: "#ff8080", marginBottom: 12 },
+  emptyText: { color: "#aaa" },
+  retryBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#2a2a2a",
+    borderRadius: 8,
   },
-  headerText: {
-    color: "white",
-  },
+  retryText: { color: "#fff" },
 });

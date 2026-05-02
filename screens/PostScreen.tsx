@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,118 +8,121 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { FullPost } from "../components/post-screen/FullPost";
-import { Comment } from "../components/post-screen/Comment";
+import { Comment as CommentView } from "../components/post-screen/Comment";
 import { Send } from "../assets/svgs/ctas/Send";
-
-interface FullPostProps {
-  username: string;
-  datePosted: string;
-  title: string;
-  content: {
-    text?: string;
-    images?: { uri: string }[];
-    tags?: string[];
-  };
-  metas: {
-    likes?: number;
-    comments?: number;
-  };
-}
-
-interface CommentItem {
-  id: string;
-  user: {
-    username: string;
-    avatar: {
-      uri: string;
-    };
-  };
-  content: {
-    textContent: string;
-    image?: {
-      uri: string;
-    };
-  };
-  commentMeta: {
-    datePosted: string;
-    likes: number;
-    replies: number;
-  };
-}
+import {
+  fetchPost,
+  fetchComments,
+  createComment,
+  deleteComment,
+  deletePost,
+  Post,
+  Comment as CommentRow,
+} from "../lib/supabase";
+import { useAuthStore } from "../stores/authStore";
+import { ConfirmModal } from "../components/modals/ConfirmModal";
 
 export const PostScreen = () => {
-  const [post, setPost] = useState<FullPostProps>({
-    username: "Thanos Kokkinis",
-    datePosted: "March 21st, 2026",
-    title: "My first post",
-    content: {
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque id massa sed est ultricies efficitur. Sed in dui vehicula, tristique ante vel, rutrum est. Sed aliquam elit vel risus hendrerit tincidunt. Phasellus sagittis sapien et sapien varius, vitae semper est faucibus. Cras luctus purus eu pretium vulputate.",
-    },
-    metas: {
-      likes: 10,
-      comments: 12,
-    },
-  });
+  const route = useRoute<any>();
+  const navigation = useNavigation<any>();
+  const me = useAuthStore((s) => s.user);
+  const postId: string | undefined = route.params?.postId;
 
+  const [post, setPost] = useState<Post | null>(null);
+  const [comments, setComments] = useState<CommentRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [newComment, setNewComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const [comments, setComments] = useState<CommentItem[]>(
-    Array.from({ length: 12 }, (_, index) => ({
-      id: index.toString(),
-      user: {
-        username: `User ${index + 1}`,
-        avatar: {
-          uri: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
-        },
-      },
-      content: {
-        textContent: `This is comment number ${index + 1}`,
-      },
-      commentMeta: {
-        datePosted: "March 29th, 2026",
-        likes: 0,
-        replies: 0,
-      },
-    }))
-  );
+  const [confirmDeletePost, setConfirmDeletePost] = useState(false);
+  const [pendingDeleteComment, setPendingDeleteComment] = useState<string | null>(null);
 
-  const registerNewComment = () => {
-    const trimmedComment = newComment.trim();
+  const load = useCallback(async () => {
+    if (!postId) {
+      setError("No post specified");
+      setLoading(false);
+      return;
+    }
+    try {
+      setError(null);
+      const [p, c] = await Promise.all([fetchPost(postId), fetchComments(postId)]);
+      setPost(p);
+      setComments(c);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to load post");
+    } finally {
+      setLoading(false);
+    }
+  }, [postId]);
 
-    if (!trimmedComment) return;
+  useEffect(() => {
+    load();
+  }, [load]);
 
-    const newCommentItem: CommentItem = {
-      id: Date.now().toString(),
-      user: {
-        username: "Thanos Kokkinis",
-        avatar: {
-          uri: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
-        },
-      },
-      content: {
-        textContent: trimmedComment,
-      },
-      commentMeta: {
-        datePosted: "Just now",
-        likes: 0,
-        replies: 0,
-      },
-    };
-
-    setComments((prev) => [newCommentItem, ...prev]);
-
-    setPost((prev) => ({
-      ...prev,
-      metas: {
-        ...prev.metas,
-        comments: (prev.metas.comments ?? 0) + 1,
-      },
-    }));
-
-    setNewComment("");
+  const registerNewComment = async () => {
+    const trimmed = newComment.trim();
+    if (!trimmed || !postId) return;
+    setSubmitting(true);
+    try {
+      const c = await createComment(postId, trimmed);
+      setComments((prev) => [...prev, c]);
+      setNewComment("");
+    } catch (e: any) {
+      Alert.alert("Failed to comment", e?.message ?? "Unknown error");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const handleDeletePost = async () => {
+    if (!postId) return;
+    try {
+      await deletePost(postId);
+      setConfirmDeletePost(false);
+      navigation.goBack();
+    } catch (e: any) {
+      setConfirmDeletePost(false);
+      Alert.alert("Failed to delete", e?.message ?? "Unknown error");
+    }
+  };
+
+  const handleDeleteComment = async () => {
+    if (!pendingDeleteComment) return;
+    const id = pendingDeleteComment;
+    setPendingDeleteComment(null);
+    try {
+      await deleteComment(id);
+      setComments((prev) => prev.filter((c) => c.id !== id));
+    } catch (e: any) {
+      Alert.alert("Failed to delete", e?.message ?? "Unknown error");
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.screen, styles.center]}>
+        <ActivityIndicator color="#fff" />
+      </View>
+    );
+  }
+
+  if (error || !post) {
+    return (
+      <View style={[styles.screen, styles.center]}>
+        <Text style={styles.errorText}>{error ?? "Post not found"}</Text>
+      </View>
+    );
+  }
+
+  const isPostOwner = !!me && me.id === post.user_id;
+  const authorName =
+    post.author?.display_name ?? post.author?.username ?? "user";
 
   return (
     <KeyboardAvoidingView
@@ -132,23 +135,65 @@ export const PostScreen = () => {
           contentContainerStyle={styles.contentContainer}
           data={comments}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Comment
-              user={item.user}
-              content={item.content}
-              commentMeta={item.commentMeta}
-            />
-          )}
+          renderItem={({ item }) => {
+            const isOwner = !!me && me.id === item.user_id;
+            return (
+              <View>
+                <CommentView
+                  user={{
+                    username:
+                      item.author?.display_name ??
+                      item.author?.username ??
+                      "user",
+                    avatar: {
+                      uri:
+                        item.author?.avatar_url ??
+                        "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
+                    },
+                  }}
+                  content={{ textContent: item.body }}
+                  commentMeta={{
+                    datePosted: new Date(item.created_at).toLocaleString(),
+                    likes: 0,
+                    replies: 0,
+                  }}
+                />
+                {isOwner && (
+                  <TouchableOpacity
+                    style={styles.commentDelete}
+                    onPress={() => setPendingDeleteComment(item.id)}
+                  >
+                    <Text style={styles.commentDeleteText}>Delete</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          }}
           ListHeaderComponent={
             <View>
-              <Text style={styles.screenTitle}>This is the PostScreen</Text>
-              <FullPost
-                username={post.username}
-                datePosted={post.datePosted}
-                title={post.title}
-                content={post.content}
-                metas={post.metas}
-              />
+              <View style={styles.postHeaderRow}>
+                <FullPost
+                  username={authorName}
+                  datePosted={new Date(post.created_at).toLocaleDateString()}
+                  title={post.title}
+                  content={{
+                    text: post.body ?? undefined,
+                    images: post.image_url
+                      ? [{ uri: post.image_url }]
+                      : undefined,
+                    tags: post.tags ?? undefined,
+                  }}
+                  metas={{ likes: 0, comments: comments.length }}
+                />
+                {isPostOwner && (
+                  <TouchableOpacity
+                    style={styles.deletePostBtn}
+                    onPress={() => setConfirmDeletePost(true)}
+                  >
+                    <Text style={styles.deletePostText}>Delete post</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           }
           ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -163,44 +208,70 @@ export const PostScreen = () => {
               placeholderTextColor="#cfcfcf"
               onChangeText={setNewComment}
               style={styles.input}
+              editable={!submitting}
             />
           </View>
 
           <TouchableOpacity
             onPress={registerNewComment}
             style={styles.sendButton}
+            disabled={submitting}
           >
-            <Send color="white" />
+            {submitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Send color="white" />
+            )}
           </TouchableOpacity>
         </View>
       </View>
+
+      <ConfirmModal
+        visible={confirmDeletePost}
+        title="Delete post?"
+        message="This action cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={handleDeletePost}
+        onCancel={() => setConfirmDeletePost(false)}
+      />
+
+      <ConfirmModal
+        visible={!!pendingDeleteComment}
+        title="Delete comment?"
+        confirmLabel="Delete"
+        destructive
+        onConfirm={handleDeleteComment}
+        onCancel={() => setPendingDeleteComment(null)}
+      />
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#1c1c1c",
+  screen: { flex: 1, backgroundColor: "#1c1c1c" },
+  container: { flex: 1, backgroundColor: "#1c1c1c" },
+  center: { justifyContent: "center", alignItems: "center" },
+  errorText: { color: "#ff8080" },
+  list: { flex: 1 },
+  contentContainer: { padding: 16, paddingBottom: 96 },
+  separator: { height: 10 },
+  postHeaderRow: { marginBottom: 12 },
+  deletePostBtn: {
+    alignSelf: "flex-start",
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "rgba(239,68,68,0.15)",
+    borderRadius: 8,
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#1c1c1c",
+  deletePostText: { color: "#ef4444", fontSize: 12, fontWeight: "600" },
+  commentDelete: {
+    alignSelf: "flex-end",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  list: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 16,
-    paddingBottom: 96,
-  },
-  screenTitle: {
-    color: "#fff",
-    marginBottom: 12,
-  },
-  separator: {
-    height: 10,
-  },
+  commentDeleteText: { color: "#ef4444", fontSize: 12 },
   stickyInputContainer: {
     position: "absolute",
     left: 0,
@@ -217,19 +288,16 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flex: 1,
-    backgroundColor: "#6c1c1c",
+    backgroundColor: "#2a2a2a",
     borderRadius: 20,
     paddingHorizontal: 14,
   },
-  input: {
-    color: "white",
-    minHeight: 42,
-  },
+  input: { color: "white", minHeight: 42 },
   sendButton: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "#6c1c1c",
+    backgroundColor: "#9e2e41",
     justifyContent: "center",
     alignItems: "center",
   },

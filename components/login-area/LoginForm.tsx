@@ -13,22 +13,25 @@ export const LoginForm = () => {
     const [username, setUsername] = React.useState<string>("");
     const [password, setPassword] = React.useState<string>("");
     const [hidden,setHidden]=React.useState<boolean>(true);
-    const navigation = useNavigation();
-    
-    const CORRECT_USERNAME = "USERNAME@gmail.com";
-    const CORRECT_PASSWORD = "PASSWORD";
+    const [errorMsg, setErrorMsg] = React.useState<string>("");
+    const [mode, setMode] = React.useState<"signIn" | "signUp">("signIn");
+    const navigation = useNavigation<any>();
+
+    const {user, loading, signIn, signUp} = useAuthStore();
 
 
-    const {user, loading, signUp} = useAuthStore();
-
-    
     const handleLogin = async () =>
     {
-        if(username === CORRECT_USERNAME && password === CORRECT_PASSWORD)
-        {
-            console.log("STARTED")
-            signUp(username, password);
-            // navigation.navigate('Post' as never);        
+        setErrorMsg("");
+        try {
+            if (mode === "signIn") {
+                await signIn(username, password);
+            } else {
+                await signUp(username, password);
+            }
+            navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+        } catch (err: any) {
+            setErrorMsg(err?.message ?? "Authentication failed");
         }
     }
     const handleHidden=()=>{
@@ -68,9 +71,19 @@ export const LoginForm = () => {
                 </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={loginFormStyles.ButtonForm} onPress={()=>handleLogin()}>
+            {!!errorMsg && (
+                <Text style={{color:'#ff8080', marginVertical:4}}>{errorMsg}</Text>
+            )}
+
+            <TouchableOpacity style={loginFormStyles.ButtonForm} onPress={()=>handleLogin()} disabled={loading}>
                 <Text style={{color:'white'}}>
-                    {"Σύνδεση"}
+                    {loading ? "..." : mode === "signIn" ? "Σύνδεση" : "Εγγραφή"}
+                </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setMode(mode === "signIn" ? "signUp" : "signIn")}>
+                <Text style={{color:'#aaa', marginTop: 8}}>
+                    {mode === "signIn" ? "Δεν έχεις λογαριασμό; Εγγραφή" : "Έχεις λογαριασμό; Σύνδεση"}
                 </Text>
             </TouchableOpacity>
         </View>

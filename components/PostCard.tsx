@@ -5,41 +5,57 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from './colors';
+import { ConfirmModal } from './modals/ConfirmModal';
+import { deletePost } from '../lib/supabase';
+import { useAuthStore } from '../stores/authStore';
 
 const VOTE_UP = '#22c55e';
 const VOTE_DOWN = '#ef4444';
 
 interface PostCardProps {
-  channel: string;
+  id?: string;
+  userId?: string;
+  channel?: string | null;
   author: string;
   authorYear?: string;
+  authorId?: string;
   timeAgo: string;
   title: string;
-  body?: string;
-  imageUrl?: string;
-  votes: number;
-  comments: number;
-  tags?: string[];
+  body?: string | null;
+  imageUrl?: string | null;
+  votes?: number;
+  comments?: number;
+  tags?: string[] | null;
+  onDeleted?: (id: string) => void;
 }
 
 const PostCard = ({
+  id,
+  userId,
   channel,
   author,
   authorYear,
+  authorId,
   timeAgo,
   title,
   body,
   imageUrl,
-  votes,
-  comments,
+  votes = 0,
+  comments = 0,
   tags,
+  onDeleted,
 }: PostCardProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+  const me = useAuthStore((s) => s.user);
   const [voteState, setVoteState] = useState<'up' | 'down' | null>(null);
   const [currentVotes, setCurrentVotes] = useState(votes);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const isOwner = !!me && !!userId && me.id === userId;
 
   const handleVote = (dir: 'up' | 'down') => {
     if (voteState === dir) {
@@ -48,6 +64,18 @@ const PostCard = ({
     } else {
       setVoteState(dir);
       setCurrentVotes(dir === 'up' ? votes + 1 : votes - 1);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    try {
+      await deletePost(id);
+      setConfirmDelete(false);
+      onDeleted?.(id);
+    } catch (err: any) {
+      setConfirmDelete(false);
+      Alert.alert('Failed to delete', err?.message ?? 'Unknown error');
     }
   };
 
@@ -60,39 +88,50 @@ const PostCard = ({
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.channelBadge}>
-            <Text style={styles.channelBadgeText}>
-              #{channel.slice(0, 2).toUpperCase()}
-            </Text>
-          </View>
+          {!!channel && (
+            <View style={styles.channelBadge}>
+              <Text style={styles.channelBadgeText}>
+                #{channel.slice(0, 2).toUpperCase()}
+              </Text>
+            </View>
+          )}
           <View style={styles.headerMeta}>
-            <Text style={styles.channelName}>#{channel}</Text>
-            <Text style={styles.metaDot}>·</Text>
-            <Text style={styles.metaText}>{author}</Text>
+            {!!channel && <Text style={styles.channelName}>#{channel}</Text>}
+            {!!channel && <Text style={styles.metaDot}>·</Text>}
+            <TouchableOpacity
+              onPress={() =>
+                authorId &&
+                navigation.navigate('Profile', { userId: authorId })
+              }
+            >
+              <Text style={styles.metaText}>{author}</Text>
+            </TouchableOpacity>
             {authorYear && (
               <Text style={styles.authorYear}>'{authorYear}</Text>
             )}
             <Text style={styles.metaText}>· {timeAgo}</Text>
           </View>
         </View>
-        <TouchableOpacity>
-          <Text style={styles.metaText}>···</Text>
-        </TouchableOpacity>
+        {isOwner && (
+          <TouchableOpacity onPress={() => setConfirmDelete(true)} hitSlop={8}>
+            <Text style={[styles.metaText, { fontSize: 18 }]}>✕</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <TouchableOpacity
-        onPress={() => navigation.navigate('Post' as never)}
+        onPress={() => id && navigation.navigate('Post', { postId: id })}
         activeOpacity={0.8}
       >
         <Text style={styles.title}>{title}</Text>
-        {body && (
+        {!!body && (
           <Text style={styles.body} numberOfLines={3}>
             {body}
           </Text>
         )}
       </TouchableOpacity>
 
-      {imageUrl && (
+      {!!imageUrl && (
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: imageUrl }}
@@ -158,15 +197,17 @@ const PostCard = ({
           <Text style={styles.actionIcon}>○</Text>
           <Text style={styles.actionText}>{comments}</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.actionBtn}>
-          <Text style={styles.actionIcon}>⤴</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.bookmarkBtn}>
-          <Text style={styles.actionIcon}>⊡</Text>
-        </TouchableOpacity>
       </View>
+
+      <ConfirmModal
+        visible={confirmDelete}
+        title="Delete post?"
+        message="This action cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </View>
   );
 };
@@ -189,6 +230,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flex: 1,
   },
   channelBadge: {
     width: 28,
@@ -207,91 +249,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flexWrap: 'wrap',
   },
-  channelName: {
-    color: COLORS.foreground,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  metaDot: {
-    color: COLORS.mutedForeground,
-    fontSize: 12,
-  },
-  metaText: {
-    color: COLORS.mutedForeground,
-    fontSize: 12,
-  },
-  authorYear: {
-    color: COLORS.active,
-    fontSize: 10,
-    fontWeight: '500',
-  },
-  title: {
-    color: COLORS.foreground,
-    fontSize: 15,
-    fontWeight: '600',
-    lineHeight: 20,
-    marginBottom: 4,
-  },
-  body: {
-    color: COLORS.mutedForeground,
-    fontSize: 14,
-    lineHeight: 21,
-    marginBottom: 8,
-  },
+  channelName: { color: COLORS.foreground, fontSize: 12, fontWeight: '600' },
+  metaDot: { color: COLORS.mutedForeground, fontSize: 12 },
+  metaText: { color: COLORS.mutedForeground, fontSize: 12 },
+  authorYear: { color: COLORS.active, fontSize: 10, fontWeight: '500' },
+  title: { color: COLORS.foreground, fontSize: 15, fontWeight: '600', lineHeight: 20, marginBottom: 4 },
+  body: { color: COLORS.mutedForeground, fontSize: 14, lineHeight: 21, marginBottom: 8 },
   imageContainer: {
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 8,
     backgroundColor: COLORS.secondary,
   },
-  image: {
-    width: '100%',
-    height: 192,
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 8,
-  },
-  tag: {
-    backgroundColor: 'rgba(158, 46, 65, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  tagText: {
-    color: COLORS.active,
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 4,
-  },
-  voteContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.secondary,
-    borderRadius: 999,
-  },
-  voteBtn: {
-    padding: 6,
-  },
-  voteArrow: {
-    color: COLORS.mutedForeground,
-    fontSize: 14,
-  },
-  voteCount: {
-    fontSize: 12,
-    fontWeight: '700',
-    minWidth: 28,
-    textAlign: 'center',
-  },
+  image: { width: '100%', height: 192 },
+  tagsRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
+  tag: { backgroundColor: 'rgba(158, 46, 65, 0.1)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999 },
+  tagText: { color: COLORS.active, fontSize: 11, fontWeight: '500' },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4 },
+  voteContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.secondary, borderRadius: 999 },
+  voteBtn: { padding: 6 },
+  voteArrow: { color: COLORS.mutedForeground, fontSize: 14 },
+  voteCount: { fontSize: 12, fontWeight: '700', minWidth: 28, textAlign: 'center' },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -301,18 +281,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  actionIcon: {
-    color: COLORS.mutedForeground,
-    fontSize: 14,
-  },
-  actionText: {
-    color: COLORS.mutedForeground,
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  bookmarkBtn: {
-    marginLeft: 'auto',
-  },
+  actionIcon: { color: COLORS.mutedForeground, fontSize: 14 },
+  actionText: { color: COLORS.mutedForeground, fontSize: 12, fontWeight: '500' },
 });
 
 export default PostCard;
