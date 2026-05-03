@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import 'react-native-url-polyfill';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,24 +11,39 @@ import { HomeScreen } from './screens/HomeScreen';
 import { PostScreen } from './screens/PostScreen';
 import { Navbar } from './components/navigation/Navbar';
 import { ProfileScreen } from './screens/ProfileScreen.tsx';
-import{AboutScreen} from './screens/AboutScreen.tsx';
+import { AboutScreen } from './screens/AboutScreen.tsx';
+import { useAuthStore } from './stores/authStore';
+
 const Stack = createNativeStackNavigator();
 const NAVBAR_HEIGHT = 56;
 
 function AppContent() {
   const insets = useSafeAreaInsets();
+  const { user, initialized, initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  if (!initialized) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator color="#fff" />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>
       <View style={styles.container}>
-        <Navbar />
+        {user && <Navbar />}
 
         <Stack.Navigator
-          initialRouteName="Login"
+          initialRouteName={user ? 'Main' : 'Login'}
           screenOptions={{
             headerShown: false,
             contentStyle: {
-              paddingTop: NAVBAR_HEIGHT + insets.top,
+              paddingTop: user ? NAVBAR_HEIGHT + insets.top : 0,
             },
           }}
         >
@@ -55,5 +70,10 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#1c1c1c',
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
